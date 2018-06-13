@@ -3,14 +3,38 @@ function [ampBinGroup segBinGroup phipeakGroup RcoeffGroup] =  plot_phase_amp_an
     ampBinGroup,segBinGroup,phipeakGroup,RcoeffGroup,...
     panlist,titleR)
 
+
+%                     ampsegColGroup{cond,side,sub} = ampSegCol;
+%                     segLColGroup{cond,side,sub} = segLCol;
+phiBinMid = phiBin(1:end-1)+((phiBin(2)-phiBin(1))/2);
+[sub side cond]
+for i = 1:3
+    [shiftPhiCol phipeak(i) binind]= findAmpPhi(R,ampSegCol(i,:),relativePhiCol,phiBin);
+    [ampBinMu(i,:) ampBinSEM(i,:)] = binstats(shiftPhiCol,ampSegCol(i,:),phiBin);
+    try
+        selind{i} = find(relativePhiCol>=phiBin(binind-1) & relativePhiCol<=phiBin(binind+1));
+    catch
+        disp('Could not compute bins'); selind{i} = NaN;
+    end
+end
+[shiftPhiCol phipeak(4) bind]= findAmpPhi(R,segLCol,relativePhiCol,phiBin);
+[segBinMu segBinSEM] = binstats(shiftPhiCol,segLCol,phiBin);
+try
+    selind{4} = find(relativePhiCol>=phiBin(binind-1) & relativePhiCol<=phiBin(binind+1));
+catch
+    disp('Could not compute bins'); selind{i} = NaN;
+end
+segBinSEM(isnan(segBinSEM)) = 0;
+
+
 figure(30)
-ylimlist = ylimlistS{1};
+ylimlist = ylimlistS{3};
 for i = 1:3
     subplot(3,2,panlist(cond,i))
     try
-    [A stat] = linplot_PD(log10(segLCol)',ampSegCol(i,:)','Seg Length (s)','Amplitude',cmapint(i,:)); xlim([-1.5 1])
-    ylim(ylimlist{breg}{i})
-    coef = stat.modcoef.*(stat.p<0.05); if size(coef,1)>size(coef,2); coef  =coef'; end
+        [A stat] = linplot_PD(log10(segLCol)',ampSegCol(i,:)','Seg Length (s)','Amplitude',cmapint(i,:),0); xlim([-1.5 1])
+        ylim(ylimlist{breg}{i})
+        coef = stat.modcoef.*(stat.p<0.05); if size(coef,1)>size(coef,2); coef  =coef'; end
     catch
         coef = [0 0];
         disp('Correlation couldnt run!!!')
@@ -20,18 +44,6 @@ for i = 1:3
     ylabel(['% Change in ' obs{i}]); xlabel('Segment Length (s)')
     
 end
-%                     ampsegColGroup{cond,side,sub} = ampSegCol;
-%                     segLColGroup{cond,side,sub} = segLCol;
-phiBinMid = phiBin(1:end-1)+((phiBin(2)-phiBin(1))/2);
-[sub side cond]
-for i = 1:3
-    [shiftPhiCol phipeak(i)]= findAmpPhi(R,ampSegCol(i,:),relativePhiCol,phiBin);
-    [ampBinMu(i,:) ampBinSEM(i,:)] = binstats(shiftPhiCol,ampSegCol(i,:),phiBin);
-end
-
-[shiftPhiCol phipeak(4)]= findAmpPhi(R,segLCol,relativePhiCol,phiBin);
-[segBinMu segBinSEM] = binstats(shiftPhiCol,segLCol,phiBin);
-segBinSEM(isnan(segBinSEM)) = 0;
 
 RcoeffGroup{cond,side,sub} = Rcoeff;
 ampBinGroup{cond,side,sub} = ampBinMu;

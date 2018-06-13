@@ -24,13 +24,13 @@ for i=1:3
     
     statvec(:,i) = coefstats(coefstore{1,i},coefstore{2,i})
 end
-% statab = table(statvec);
-% statab.Properties.RowNames = {'N_{OFF}','N_{ON}', 'Chi_ON_OFF','A','X1bar_SEM_OFF','SEM1_OFF','X1bar_ON','SEM1_ON','X1bar_ON/OFF','t-test P1',...
-%     'X2bar_SEM_OFF','SEM2_OFF','X2bar_ON','SEM2_ON','X2bar_ON/OFF','t-test P2'};
-% statab.Properties.VariableNames  = {'A','B','C'};
-% 
-% statvec = [sum(~isnan(x1)) sum(~isnan(y1)) chi2stat(1) p(1) nanmean(x1) nansem2(x1) nanmean(y1) nansem2(y1) nanmean(x1)-nanmean(y1) p(3)...
-%     nanmean(x2) nansem2(x2) nanmean(y2) nansem2(y2) nanmean(x2)-nanmean(y2) p(4)];
+statab = table(statvec);
+statab.Properties.RowNames = {'N_{OFF}','N_{ON}', 'Chi_ON_OFF','A','X1bar_SEM_OFF','SEM1_OFF','X1bar_ON','SEM1_ON','X1bar_ON/OFF','t-test P1',...
+    'X2bar_SEM_OFF','SEM2_OFF','X2bar_ON','SEM2_ON','X2bar_ON/OFF','t-test P2'};
+statab.Properties.VariableNames  = {'A','B','C'};
+
+statvec = [sum(~isnan(x1)) sum(~isnan(y1)) chi2stat(1) p(1) nanmean(x1) nansem2(x1) nanmean(y1) nansem2(y1) nanmean(x1)-nanmean(y1) p(3)...
+    nanmean(x2) nansem2(x2) nanmean(y2) nansem2(y2) nanmean(x2)-nanmean(y2) p(4)];
 
 a = gca;
 
@@ -196,10 +196,11 @@ xydata = vertcat(xydatac{:})
 X = xydata(:,1); Y = xydata(:,2); I = xydata(:,3); COND = xydata(:,4);
 tbl = table(xydata(:,1),xydata(:,2),xydata(:,3),xydata(:,4),'VariableNames',{'X','Y','I','COND'});
 lme1 = fitlme(tbl,'Y~X+(X|I)');
-lme2 = fitlme(tbl,'Y~ X + COND +(X|I)+(X|COND)');
-% results = compare(lme1,lme2,'nsim',500)
+lme2 = fitlme(tbl,'Y~COND+ X+(X|I)');
+results = compare(lme1,lme2,'nsim',500)
 stats = anova(lme2);
-stats = [stats.FStat(2) stats.pValue(2) stats.FStat(3) stats.pValue(3)];
+stats = [stats.FStat(2) stats.pValue(2)];
+
 yhat = predict(lme2,tbl);
 xyhat = [X yhat I COND];
 for cond = 1:2

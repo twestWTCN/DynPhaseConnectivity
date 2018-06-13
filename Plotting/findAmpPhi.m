@@ -1,5 +1,6 @@
-function [phishift phipeak] = findAmpPhi(R,amp,phi,phiBin)
+function [phishift phipeak binind] = findAmpPhi(R,amp,phi,phiBin)
 % phiBin = linspace(-pi,pi,N);
+binind = [];
 phiBinMid = phiBin(1:end-1)+((phiBin(2)-phiBin(1))/2);
 if strncmp(R.PA.plotting.realignMeth,'WghtedPrctleAmp',15)
     prc = str2double(R.PA.plotting.realignMeth(end-1:end));
@@ -25,6 +26,7 @@ switch R.PA.plotting.realignMeth(isstrprop(R.PA.plotting.realignMeth,'alpha'))
         phishift = phiBinMid(ampBinMu==max(ampBinMu));
         phishift = wrapToPi(phi - phishift(1)); % Use the first maximum
     case 'WghtedPrctleAmp'
+        binind = find(WampBinPrct==max(WampBinPrct));
         phishift = phiBinMid(WampBinPrct==max(WampBinPrct));
         phipeak = RPBinMean(WampBinPrct==max(WampBinPrct));
         if isempty(phishift); phishift = 0; disp('Couldnt Shift Phi!!!'); end
@@ -44,7 +46,6 @@ switch R.PA.plotting.realignMeth(isstrprop(R.PA.plotting.realignMeth,'alpha'))
 end
 if isempty(phipeak); phipeak = phiBin(3); disp('Couldnt Shift Phi!!!'); end
 phipeak = phipeak(1);
-
 % phishift = phiBinMid(ampBinMu==max(ampBinMu));
 % % wrapToPi(phiBinMid - phishift)
 % phishift = wrapToPi(phi - phishift(1));
