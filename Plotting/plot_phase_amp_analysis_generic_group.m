@@ -1,15 +1,15 @@
-function plot_phase_amp_analysis_generic_group(R,panlist,obs,phiBin,ampBinGroup,segBinGroup,phipeakGroup,RcoeffGroup)
+function plot_phase_amp_analysis_generic_group(R,panlist,obs,phiBin,ampBinGroup,segBinGroup,phipeakGroup,RcoeffGroup,ampdata,segdata,rpdata,ampsurdata)
 phiBinMid = phiBin(1:end-1)+((phiBin(2)-phiBin(1))/2);
-cmap = linspecer(3);
+cmap = linspecer(5);
 
 figure(30)
 set(gcf,'Position',[1190         330         627         750])
 x1 = vertcat(RcoeffGroup{1,:,:});
 x2 = vertcat(RcoeffGroup{2,:,:});
 xl = -1:.1:0.5; xl= [ones(length(xl),1) xl'];
-for i=1:3
+for i=1:4
     for cond = 1:2
-        subplot(3,2,panlist(cond,i))
+        subplot(4,2,panlist(cond,i))
         if cond == 1; coefs = x1(:,:,i); else;   coefs = x2(:,:,i)'; end
         if size(coefs,2)>size(coefs,1); coefs = coefs'; end
         W = sum(coefs(:,1)~=0)./size(coefs,1);
@@ -22,7 +22,7 @@ for i=1:3
     [xydata stats] = getscatterdata(a);
     regstats(:,i,cond) = stats;
     
-    statvec(:,i) = coefstats(coefstore{1,i},coefstore{2,i})
+    statvec(:,i) = coefstats(coefstore{1,i},coefstore{2,i});
 end
 % statab = table(statvec);
 % statab.Properties.RowNames = {'N_{OFF}','N_{ON}', 'Chi_ON_OFF','A','X1bar_SEM_OFF','SEM1_OFF','X1bar_ON','SEM1_ON','X1bar_ON/OFF','t-test P1',...
@@ -41,18 +41,27 @@ set(f,'Position',[539    81   626   999])
 
 for cond=1:2
     y =  horzcat(ampBinGroup{cond,:,:});
-    for i = 1:3
-        a = subplot(4,2,panlist(cond,i)); hold on
+
+    for i = 1:4
+
+        a = subplot(5,2,panlist(cond,i)); hold on
         y1 = reshape(y(i,:),size(phiBinMid,2),[])';
         ysave{cond,i} = y1;
         [hl hp] = boundedline(phiBinMid', nanmedian(y1)',abs([prctile(y1,16)' prctile(y1,84)']-nanmedian(y1)'),'cmap',cmap(i,:)); %
         hl.LineWidth = 2;
         L = get(gca,'children'); L(2) = L(end); L(end) = hp;set(gca,'children',L)
+        
+        ampSur = meanSurData(ampsurdata,cond,i)
+        plot(phiBinMid,squeeze(ampSur(:,1)),'k--')
+        plot(phiBinMid,squeeze(ampSur(:,2)),'k--')
+        
         xlim([-pi pi])
         if cond ==2
             figure(f)
-            a = subplot(4,2,panlist(cond,i)); hold on
-            x1 = sqres(ysave{1,i},nanmedian(ysave{1,i}))/1000; x2 = sqres(ysave{2,i},nanmedian(ysave{2,i}))/1000;
+            a = subplot(5,2,panlist(cond,i)); hold on
+            yfit = vertcat(ysave{:,i})
+            x1 = sqres(ysave{1,i},nanmedian(yfit))/1000; 
+            x2 = sqres(ysave{2,i},nanmedian(yfit))/1000;
             p(i) = ranksum(x1,x2);
             [figx figy] = dsxy2figxy(a, -3,a.YLim(1)*0.95)
             g = annotation(gcf,'textbox',...
@@ -70,21 +79,21 @@ for cond=1:2
         end
     end
 end
-cmapA = linspecer(3);
+cmapA = linspecer(5);
 cmap = linspecer(5);
-cmapA(4,:) = cmap(5,:);
-panlist(:,4) = [7; 8];
+% cmapA(4,:) = cmap(5,:);
+panlist(:,5) = [9; 10];
 
 for cond=1:2
     y =  vertcat(segBinGroup{cond,:,:});
-    ysave{cond,4} = y;
-    subplot(4,2,panlist(cond,4)); hold on
+    ysave{cond,5} = y;
+    subplot(5,2,panlist(cond,5)); hold on
     [hl hp] = boundedline(phiBinMid', nanmedian(y)',abs([prctile(y,16)' prctile(y,84)']-nanmedian(y)'),'cmap',cmap(5,:));
     hl.LineWidth = 2;
     L = get(gca,'children'); L(2) = L(end); L(end) = hp; set(gca,'children',L)
     xlim([-pi pi])
     if cond ==2
-        x1 = sqres(ysave{1,4},nanmedian(ysave{1,4}))/1000; x2 = sqres(ysave{2,4},nanmedian(ysave{2,4}))/1000;
+        x1 = sqres(ysave{1,5},nanmedian(ysave{1,5}))/1000; x2 = sqres(ysave{2,5},nanmedian(ysave{2,5}))/1000;
         p(4) = ranksum(x1,x2);
         a = gca;[figx figy] = dsxy2figxy(gca, -3,a.YLim(1)*0.95);
         annotation(gcf,'textbox',...
@@ -119,28 +128,28 @@ annotation(gcf,'textbox',...
 %     close all
 clear ampBinGroup segBinGroup
 
-figure
-set(gcf,'Position',[823   421   785   677])
-x1 = vertcat(phipeakGroup{1,:,:});
-x2 = vertcat(phipeakGroup{2,:,:});
-
-legloc = legloc();
-for i = 1:4
-    subplot(2,2,i)
-    x11 = x1(:,i);
-    x22 = x2(:,i);
-    polarhistogram(x11,6,'Normalization','Probability','FaceColor',cmapA(i,:).*0.75,'LineStyle','none','FaceAlpha',.5); hold on
-    a(i,1) =  polarhistogram(x11,6,'Normalization','Probability','DisplayStyle','stairs','EdgeColor',cmapA(i,:).*0.75,'LineWidth',1.2);
-    polarhistogram(x22,6,'Normalization','Probability','FaceColor',cmapA(i,:),'LineStyle','none','FaceAlpha',.3); hold on
-    a(i,2) = polarhistogram(x22,6,'Normalization','Probability','DisplayStyle','stairs','EdgeColor',cmapA(i,:),'LineWidth',1.5);
-    title(['RP Dist. for Peak ' obs{i}]); rlim([0 0.5])
-    legend(a(i,:),R.condname,'Position',legloc(i,:),'Orientation','Horizontal','Color','none','EdgeColor','none')
-    %         [p,m,pv] = circ_cmtest([x11;x22]',[repmat(1,size(x11));repmat(2,size(x22))]');
-    %circ_wwtest([x11;x22],[repmat(1,size(x11));repmat(2,size(x22))]); % ttest
-    p(i,1) = circ_rtest(x11);rayleg(p(i,1),i,1);
-    p(i,2) = circ_rtest(x22);rayleg(p(i,2),i,2);
-    %         [sig(i)] = disp_anova(x11,x22)
-end
+% % % figure
+% % % set(gcf,'Position',[823   421   785   677])
+% % % x1 = vertcat(phipeakGroup{1,:,:});
+% % % x2 = vertcat(phipeakGroup{2,:,:});
+% % % 
+% % % legloc = legloc();
+% % % for i = 1:5
+% % %     subplot(3,2,i)
+% % %     x11 = x1(:,i);
+% % %     x22 = x2(:,i);
+% % %     polarhistogram(x11,6,'Normalization','Probability','FaceColor',cmapA(i,:).*0.75,'LineStyle','none','FaceAlpha',.5); hold on
+% % %     a(i,1) =  polarhistogram(x11,6,'Normalization','Probability','DisplayStyle','stairs','EdgeColor',cmapA(i,:).*0.75,'LineWidth',1.2);
+% % %     polarhistogram(x22,6,'Normalization','Probability','FaceColor',cmapA(i,:),'LineStyle','none','FaceAlpha',.3); hold on
+% % %     a(i,2) = polarhistogram(x22,6,'Normalization','Probability','DisplayStyle','stairs','EdgeColor',cmapA(i,:),'LineWidth',1.5);
+% % %     title(['RP Dist. for Peak ' obs{i}]); rlim([0 0.5])
+% % %     legend(a(i,:),R.condname,'Position',legloc(i,:),'Orientation','Horizontal','Color','none','EdgeColor','none')
+% % %     %         [p,m,pv] = circ_cmtest([x11;x22]',[repmat(1,size(x11));repmat(2,size(x22))]');
+% % %     %circ_wwtest([x11;x22],[repmat(1,size(x11));repmat(2,size(x22))]); % ttest
+% % %     p(i,1) = circ_rtest(x11);rayleg(p(i,1),i,1);
+% % %     p(i,2) = circ_rtest(x22);rayleg(p(i,2),i,2);
+% % %     %         [sig(i)] = disp_anova(x11,x22)
+% % % end
 %     savefigure_v2([R.resultspathr '\Group\seganalysis\'],...
 %         [R.bregname{breg} '_Group_CagnanAnalysis_RP_rose'],[],[],'-r100'); close all
 
@@ -210,6 +219,18 @@ for cond = 1:2
         plot(xy(:,1),xy(:,2),'k:'); hold on
     end
 end
+
+
+function X = meanSurData(ampsurdata,cond,i)
+X1 = []; X2 = [];
+for side=1:2
+    for sub = 1:size(ampsurdata,3)
+        X1 = [X1 squeeze(ampsurdata{cond,side,sub}(:,i,1))]
+        X2 = [X2 squeeze(ampsurdata{cond,side,sub}(:,i,2))]
+    end
+end
+X1 = mean(X1,2); X2 = mean(X2,2);
+X =[X1 X2];
 %
 % w = linspace(min(X),max(X));
 %

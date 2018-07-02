@@ -12,7 +12,7 @@ if plotop == 1
     for cond=1:size(ysave,1)
         for i = 1:size(ysave,2)
             alpha = 0.05/size(ptt,1);
-            a =  subplot(4,2,panlist(cond,i));
+            a =  subplot(size(ysave,2),2,panlist(cond,i));
             
             mask = pvart(:,i)<=alpha;
             plotSigBar(mask,x,a,cmap(i,:),'-',0.70,pvart(:,i))

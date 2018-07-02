@@ -8,19 +8,22 @@ function [ampBinGroup segBinGroup phipeakGroup RcoeffGroup] =  plot_phase_amp_an
 %                     segLColGroup{cond,side,sub} = segLCol;
 phiBinMid = phiBin(1:end-1)+((phiBin(2)-phiBin(1))/2);
 [sub side cond]
-for i = 1:3
+for i = 1:4
     [shiftPhiCol phipeak(i) binind]= findAmpPhi(R,ampSegCol(i,:),relativePhiCol,phiBin);
     [ampBinMu(i,:) ampBinSEM(i,:)] = binstats(shiftPhiCol,ampSegCol(i,:),phiBin);
     try
-        selind{i} = find(relativePhiCol>=phiBin(binind-1) & relativePhiCol<=phiBin(binind+1));
+        selind{i} = find(relativePhiCol>=phiBin(binind) & relativePhiCol<=phiBin(binind));
     catch
         disp('Could not compute bins'); selind{i} = NaN;
     end
 end
-[shiftPhiCol phipeak(4) bind]= findAmpPhi(R,segLCol,relativePhiCol,phiBin);
+% ampSur = makeAmpRPhiSurr(R,ampSegCol,relativePhiCol,phiBin);
+
+
+[shiftPhiCol phipeak(5) bind]= findAmpPhi(R,segLCol,relativePhiCol,phiBin);
 [segBinMu segBinSEM] = binstats(shiftPhiCol,segLCol,phiBin);
 try
-    selind{4} = find(relativePhiCol>=phiBin(binind-1) & relativePhiCol<=phiBin(binind+1));
+    selind{5} = find(relativePhiCol>=phiBin(binind) & relativePhiCol<=phiBin(binind));
 catch
     disp('Could not compute bins'); selind{i} = NaN;
 end
@@ -29,8 +32,8 @@ segBinSEM(isnan(segBinSEM)) = 0;
 
 figure(30)
 ylimlist = ylimlistS{3};
-for i = 1:3
-    subplot(3,2,panlist(cond,i))
+for i = 1:4
+    subplot(4,2,panlist(cond,i))
     try
         [A stat] = linplot_PD(log10(segLCol)',ampSegCol(i,:)','Seg Length (s)','Amplitude',cmapint(i,:),0); xlim([-1.5 1])
         ylim(ylimlist{breg}{i})
@@ -51,10 +54,10 @@ segBinGroup{cond,side,sub} = segBinMu;
 phipeakGroup{cond,side,sub} = phipeak;
 
 figure(1)
-cmap = linspecer(3);
+cmap = linspecer(5);
 ylimlist = ylimlistS{1};
-for i = 1:3
-    subplot(4,2,panlist(cond,i))
+for i = 1:4
+    subplot(5,2,panlist(cond,i))
     hl = plot(phiBinMid', ampBinMu(i,:)','--','color',cmap(i,:)); hold on
     % %                         [hl, hp] = boundedline(phiBinMid', ampBinMu(i,:)',ampBinSEM(i,:)','cmap',cmap(i,:)); hold on
     % %                         if cond == 1; hl.LineStyle = '--'; end
@@ -71,9 +74,9 @@ for i = 1:3
     grid on
 end
 
-cmap = linspecer(5);
-panlist(:,4) = [7; 8];
-subplot(4,2,panlist(cond,4))
+% cmap = linspecer(5);
+panlist(:,5) = [9; 10];
+subplot(5,2,panlist(cond,5))
 hl = plot(phiBinMid', segBinMu(1,:)','--','color',cmap(5,:)); hold on
 % %                     [hl, hp] = boundedline(phiBinMid', segBinMu(1,:)',segBinSEM(1,:)','cmap',cmap(5,:));
 % %                     if cond == 1; hl.LineStyle = '--'; end

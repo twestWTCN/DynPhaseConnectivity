@@ -1,7 +1,7 @@
-function [maxfrq maxPLV] = compute_optimal_PhaseLockFrq(R,Xdata,band,stn_lb_frq)
+function [maxfrq maxPLV] = compute_optimal_PhaseLockFrq(R,Xdata,band)
 frqlist = R.PA.frqrange{band};
 for frqn = 1:numel(frqlist)
-    [amp phi dphi_12 , ~, ~] = comp_instant_angle_phase(Xdata,frqlist(frqn),stn_lb_frq,R.PA.bwid,band);
+    [amp phi dphi_12 , ~, ~] = comp_instant_angle_phase(Xdata,frqlist(frqn),R.PA.bwid,band);
     %Epoched
     WinSize = R.PA.slidingwindow*Xdata.fsample;
     [dphi_12,sind] = slideWindow(dphi_12, floor(WinSize*5), 0);

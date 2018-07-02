@@ -13,7 +13,7 @@ for i = 1:length(phiBin)-1
     ampBinMu(:,i) = nanmean(binDat);
     WampBinMean(:,i) = mean(binDat)*(numel(binDat)/numel(amp)); %%     Weighted mean
     WampBinPrct(:,i) = prctile(binDat,prc)*(numel(binDat)/numel(amp)); %%     Weighted mean
-    RPBinMean(:,i) = circ_mean(phi(:,phi>=phiBin(i) & phi<=phiBin(i+1))');
+    RPBinMean(:,i) = circ_mean(phi(phi>=phiBin(i) & phi<=phiBin(i+1))');
     binN(:,i) = numel(binDat);
     ampBinSEM(:,i) = nanstd(binDat)/size(binDat,1);
 end

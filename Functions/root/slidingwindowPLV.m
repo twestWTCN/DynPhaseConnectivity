@@ -3,13 +3,14 @@ function [PLV PLV_tvec] = slidingwindowPLV(period,phi,overlap,type)
 slide_dphi_12 = wrapToPi(slide_dphi_12);
 
 if isequal(type,'WPLV')
-    win = hanning(size(slide_dphi_12,1));
+    win = tukeywin(size(slide_dphi_12,1),0.25);
+%     win = hanning(size(slide_dphi_12,1));
     for i = 1:size(slide_dphi_12,2)
         PLV(i) = abs(wmean(exp(1i*slide_dphi_12(:,i)),win,1));
     end
 else
     PLV = abs(mean(exp(1i*slide_dphi_12),1));
-    disp('USING PLV!')
+%     disp('USING PLV!')
 end
 % PLV_tvec = (round(median(sind,1)));
 % PLV = movmean(PLV,8);
